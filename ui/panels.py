@@ -3,6 +3,7 @@ from bpy.types import Panel
 from ..core.formats import CATEGORIES, presets_for_category, active_preset_id, get_preset
 from ..core.fps import FPS_PRESETS, current_fps
 
+
 class VSEF_PT_Main(Panel):
     bl_label = "VSE Formats Pro"
     bl_idname = "VSEF_PT_main"
@@ -19,9 +20,11 @@ class VSEF_PT_Main(Panel):
         fps = current_fps(scene)
         active = active_preset_id(scene)
 
+        # Current project
         box = layout.box()
         box.label(text="CURRENT PROJECT", icon='FILE_MOVIE')
-        row = box.row(); row.scale_y = 1.2
+        row = box.row()
+        row.scale_y = 1.2
         row.label(text=f"{w} × {h}", icon='IMAGE_DATA')
         row.label(text=f"{fps:.3f} FPS", icon='TIME')
         if active:
@@ -30,23 +33,85 @@ class VSEF_PT_Main(Panel):
         else:
             box.label(text="Custom format", icon='PREFERENCES')
 
+        # Fast format switching while editing.
+        switch = layout.box()
+        switch.label(text="QUICK FORMAT SWITCH")
+
+        if w > h:
+            row = switch.row(align=True)
+            op = row.operator(
+                'vsef.switch_orientation',
+                text='16:9 → 9:16 Vertical',
+                icon='FORWARD',
+            )
+            op.orientation = 'PORTRAIT'
+            op = row.operator(
+                'vsef.switch_orientation',
+                text='16:9 → 1:1',
+                icon='SNAP_FACE',
+            )
+            op.orientation = 'SQUARE'
+
+        elif h > w:
+            row = switch.row(align=True)
+            op = row.operator(
+                'vsef.switch_orientation',
+                text='9:16 → 16:9 Landscape',
+                icon='BACK',
+            )
+            op.orientation = 'LANDSCAPE'
+            op = row.operator(
+                'vsef.switch_orientation',
+                text='9:16 → 1:1',
+                icon='SNAP_FACE',
+            )
+            op.orientation = 'SQUARE'
+
+        else:
+            row = switch.row(align=True)
+            op = row.operator(
+                'vsef.switch_orientation',
+                text='Square → 16:9',
+                icon='FORWARD',
+            )
+            op.orientation = 'LANDSCAPE'
+            op = row.operator(
+                'vsef.switch_orientation',
+                text='Square → 9:16',
+                icon='FORWARD',
+            )
+            op.orientation = 'PORTRAIT'
+
         layout.separator(factor=0.5)
         layout.label(text="FPS", icon='TIME')
         grid = layout.grid_flow(columns=3, even_columns=True, align=True)
         for label, num, den in FPS_PRESETS:
-            op = grid.operator('vsef.set_fps', text=label, depress=abs(fps - num / den) < 0.0005)
-            op.numerator = num; op.denominator = den
+            op = grid.operator(
+                'vsef.set_fps',
+                text=label,
+                depress=abs(fps - num / den) < 0.0005,
+            )
+            op.numerator = num
+            op.denominator = den
 
         layout.separator(factor=0.6)
+        layout.label(text="FORMAT PRESETS", icon='FILE_MOVIE')
         for category in CATEGORIES:
             presets = presets_for_category(category)
+            if not presets:
+                continue
             box = layout.box()
             box.label(text=category, icon='FILE_MOVIE')
             grid = box.grid_flow(columns=1, align=True)
             for preset in presets:
                 row = grid.row(align=True)
                 is_active = preset.id == active
-                op = row.operator('vsef.apply_format', text=preset.name, icon='CHECKMARK' if is_active else 'NONE', depress=is_active)
+                op = row.operator(
+                    'vsef.apply_format',
+                    text=preset.name,
+                    icon='CHECKMARK' if is_active else 'NONE',
+                    depress=is_active,
+                )
                 op.preset_id = preset.id
                 op.fps_numerator = r.fps
                 op.fps_denominator = r.fps_base
