@@ -114,7 +114,7 @@ class VSEF_PT_Main(Panel):
                 )
                 op.preset_id = preset.id
                 op.fps_numerator = r.fps
-                op.fps_denominator = r.fps_base
+                op.fps_denominator = int(round(r.fps_base))
                 row.label(text=f"{preset.width} × {preset.height}  •  {preset.aspect}")
 
         layout.separator(factor=0.5)
