@@ -12,9 +12,10 @@ from .operators.format_ops import CLASSES as FORMAT_CLASSES
 from .operators.preset_ops import CLASSES as PRESET_CLASSES
 from .ui.panels import CLASSES as PANEL_CLASSES
 from .ui.header import register_header, unregister_header
+from .ui.format_launcher import CLASSES as LAUNCHER_CLASSES
 from .core import state
 
-_CLASSES = FORMAT_CLASSES + PRESET_CLASSES + PANEL_CLASSES
+_CLASSES = FORMAT_CLASSES + PRESET_CLASSES + PANEL_CLASSES + LAUNCHER_CLASSES
 
 
 def register():
@@ -23,6 +24,9 @@ def register():
     for cls in _CLASSES:
         bpy.utils.register_class(cls)
     register_header()
+    # O watcher automático do launcher não é iniciado por padrão:
+    # abrir um popup não solicitado ao entrar no VSE é intrusivo.
+    # start_launcher_watcher() pode ser chamado manualmente quando desejado.
     print("[VSE Formats Pro 4.0] Registered for Blender 5.x+")
 
 
