@@ -5,7 +5,7 @@ class VSEFormatsProperties(bpy.types.PropertyGroup):
     last_preset: StringProperty(default="youtube_1080p")
     fps_numerator: IntProperty(default=30, min=1)
     fps_denominator: IntProperty(default=1, min=1)
-    auto_fit_enabled: BoolProperty(default=False)
+    auto_fit_enabled: BoolProperty(default=True)
 
 
 def register():
