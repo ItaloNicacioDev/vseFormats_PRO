@@ -25,8 +25,9 @@ def register():
     for cls in _CLASSES:
         bpy.utils.register_class(cls)
     register_header()
-    # Inicia o timer de Auto Fit automaticamente (ativado por padrão).
+    # Inicia o timer de Auto Fit e o handler de depsgraph (ambos automáticos).
     timeline_range.start_auto_fit_timer()
+    timeline_range.start_auto_fit_handler()
     # O watcher automático do launcher não é iniciado por padrão:
     # abrir um popup não solicitado ao entrar no VSE é intrusivo.
     # start_launcher_watcher() pode ser chamado manualmente quando desejado.
@@ -38,7 +39,7 @@ def unregister():
     import bpy
     for cls in reversed(_CLASSES):
         bpy.utils.unregister_class(cls)
-    timeline_range.stop_auto_fit_timer()
+    timeline_range.stop_auto_fit()
     state.unregister()
     print("[VSE Formats Pro 4.0] Unregistered")
 
