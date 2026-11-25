@@ -12,7 +12,7 @@ class VSEF_OT_ApplyFormat(Operator):
 
     preset_id: StringProperty()
     fps_numerator: IntProperty(default=30)
-    fps_denominator: IntProperty(default=1)
+    fps_denominator: IntProperty(default=1, min=1)
 
     def execute(self, context):
         preset = get_preset(self.preset_id)
@@ -50,6 +50,8 @@ class VSEF_OT_SetFPS(Operator):
         context.scene.render.fps_base = self.denominator
         context.scene.vse_formats.fps_numerator = self.numerator
         context.scene.vse_formats.fps_denominator = self.denominator
+        # FPS alterado: o estado atual pode não corresponder a nenhum preset
+        context.scene.vse_formats.last_preset = ""
         return {'FINISHED'}
 
 
