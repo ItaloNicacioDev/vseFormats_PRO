@@ -31,6 +31,8 @@ def register():
         bpy.utils.register_class(cls)
     register_header()
     register_timeline_header()
+    # Inicia o timer de Auto Fit automaticamente (ativado por padrão).
+    start_auto_fit_timer()
     # O watcher automático do launcher não é iniciado por padrão:
     # abrir um popup não solicitado ao entrar no VSE é intrusivo.
     # start_launcher_watcher() pode ser chamado manualmente quando desejado.
