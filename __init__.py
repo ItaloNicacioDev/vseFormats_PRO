@@ -1,6 +1,6 @@
 bl_info = {
     "name": "VSE Formats Pro",
-    "author": "Italo Nicacio",
+    "author": "Italo Nicacio Dev",
     "version": (4, 2, 3),
     "blender": (5, 0, 0),
     "location": "Video Sequencer > Sidebar > VSE Formats",
