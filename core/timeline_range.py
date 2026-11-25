@@ -43,6 +43,30 @@ def get_max_frame_end(scene):
     return max_end
 
 
+def get_min_frame_start(scene):
+    """Retorna o menor frame inicial ocupado pelos strips na timeline."""
+    seq = getattr(scene, "sequence_editor", None)
+    if seq is None:
+        return 0
+
+    strips = getattr(seq, "strips_all", None)
+    if strips is None:
+        strips = getattr(seq, "sequences", [])
+
+    min_start = None
+    for strip in strips:
+        start = getattr(strip, "frame_final_start", None)
+        if start is None:
+            start = getattr(strip, "left_handle", None)
+        try:
+            start = int(start)
+        except (TypeError, ValueError):
+            continue
+        if min_start is None or start < min_start:
+            min_start = start
+    return min_start if min_start is not None else 0
+
+
 class AutoFitState:
     """Estado do auto fit (mantido fora de bpy.props para não poluir Scene)."""
 
@@ -50,11 +74,11 @@ class AutoFitState:
     last_max_frame = 0
     timer_registered = False
     handler_registered = False
+    _is_adjusting = False
 
 
-def apply_timeline_range(context, max_frame, margin=MARGIN_DEFAULT):
+def apply_timeline_range(scene, max_frame, margin=MARGIN_DEFAULT):
     """Estende scene.frame_end para max_frame + margem, se ainda não cobrir."""
-    scene = context.scene
     if scene is None:
         return False
 
@@ -71,10 +95,27 @@ def _check_and_fit():
         scene = bpy.context.scene
         if scene is None:
             return
+
+        vse_formats = getattr(scene, "vse_formats", None)
+        if vse_formats is None or not getattr(vse_formats, "auto_fit_enabled", True):
+            AutoFitState.last_max_frame = 0
+            return
+
+        if AutoFitState._is_adjusting:
+            return
+
         max_frame = get_max_frame_end(scene)
         if max_frame > 0 and max_frame != AutoFitState.last_max_frame:
-            AutoFitState.last_max_frame = max_frame
-            apply_timeline_range(bpy.context, max_frame)
+            AutoFitState._is_adjusting = True
+            try:
+                AutoFitState.last_max_frame = max_frame
+                apply_timeline_range(scene, max_frame)
+                # Ajusta frame_start para o menor frame ocupado pelos strips
+                min_start = get_min_frame_start(scene)
+                if min_start > 0 and scene.frame_start > min_start:
+                    scene.frame_start = min_start
+            finally:
+                AutoFitState._is_adjusting = False
     except Exception as exc:
         print(f"[VSE Formats Pro] Auto Fit error: {exc}")
 
