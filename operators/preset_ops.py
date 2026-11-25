@@ -13,6 +13,15 @@ class VSEF_OT_ResetProject(Operator):
         scene.vse_formats.last_preset = ""
         scene.vse_formats.fps_numerator = 30
         scene.vse_formats.fps_denominator = 1
+        # Reset de resolução e frame_end para valores padrão
+        render = scene.render
+        render.resolution_x = 1920
+        render.resolution_y = 1080
+        render.resolution_percentage = 100
+        try:
+            scene.frame_end = 250
+        except Exception:
+            pass
         return {'FINISHED'}
 
 
