@@ -43,6 +43,15 @@ def get_max_frame_end(scene):
     return max_end
 
 
+class AutoFitState:
+    """Estado do auto fit (mantido fora de bpy.props para não poluir Scene)."""
+
+    enabled = True
+    last_max_frame = 0
+    timer_registered = False
+    handler_registered = False
+
+
 def apply_timeline_range(context, max_frame, margin=MARGIN_DEFAULT):
     """Estende scene.frame_end para max_frame + margem, se ainda não cobrir."""
     scene = context.scene
@@ -56,28 +65,29 @@ def apply_timeline_range(context, max_frame, margin=MARGIN_DEFAULT):
     return False
 
 
-class AutoFitState:
-    """Estado do auto fit (mantido fora de bpy.props para não poluir Scene)."""
-
-    enabled = True
-    last_max_frame = 0
-    timer_registered = False
-
-
-def _auto_fit_timer():
-    """Callback do timer do Blender. Verifica mudanças no maior frame final."""
+def _check_and_fit():
+    """Executa a verificação e ajuste do frame_end (usado por timer e handler)."""
     try:
         scene = bpy.context.scene
         if scene is None:
-            return 0.1
-
+            return
         max_frame = get_max_frame_end(scene)
         if max_frame > 0 and max_frame != AutoFitState.last_max_frame:
             AutoFitState.last_max_frame = max_frame
             apply_timeline_range(bpy.context, max_frame)
     except Exception as exc:
-        print(f"[VSE Formats Pro] Auto Fit timer error: {exc}")
-    return 0.1
+        print(f"[VSE Formats Pro] Auto Fit error: {exc}")
+
+
+def _auto_fit_timer():
+    """Callback do timer do Blender. Verifica mudanças no maior frame final."""
+    _check_and_fit()
+    return 0.05
+
+
+def _depsgraph_handler(scene, depsgraph):
+    """Handler do depsgraph: dispara ajuste imediatamente ao mudar a cena."""
+    _check_and_fit()
 
 
 def start_auto_fit_timer():
@@ -86,6 +96,16 @@ def start_auto_fit_timer():
     try:
         bpy.app.timers.register(_auto_fit_timer, persistent=True, first_interval=0.0)
         AutoFitState.timer_registered = True
+    except Exception:
+        pass
+
+
+def start_auto_fit_handler():
+    if AutoFitState.handler_registered:
+        return
+    try:
+        bpy.app.handlers.depsgraph_update_post.append(_depsgraph_handler)
+        AutoFitState.handler_registered = True
     except Exception:
         pass
 
@@ -99,4 +119,19 @@ def stop_auto_fit_timer():
     except Exception:
         pass
     AutoFitState.timer_registered = False
+
+
+def stop_auto_fit_handler():
+    if not AutoFitState.handler_registered:
+        return
+    try:
+        bpy.app.handlers.depsgraph_update_post.remove(_depsgraph_handler)
+    except (ValueError, AttributeError):
+        pass
+    AutoFitState.handler_registered = False
+
+
+def stop_auto_fit():
+    stop_auto_fit_timer()
+    stop_auto_fit_handler()
     AutoFitState.last_max_frame = 0
