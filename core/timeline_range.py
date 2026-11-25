@@ -1,10 +1,11 @@
-"""Auto Timeline Range — ajuste automático do enquadramento horizontal do VSE.
+"""Auto Timeline Range — ajuste automático do final do playback do VSE.
 
-Calcula o maior frame final ocupado pelos strips e enquadra a timeline do
-Video Sequencer para comportar esse conteúdo, com margem visual opcional.
+Acompanha o maior frame final ocupado pelos strips e estende
+scene.frame_end para comportar esse conteúdo, com margem visual.
 Inspirado no comportamento "auto fit" do Adobe Premiere Pro.
 
 Não altera duração, FPS, resolução nem posição dos clipes.
+Só aumenta o frame_end; nunca diminui automaticamente (evita cortar o playback).
 """
 
 import bpy
@@ -37,59 +38,17 @@ def get_max_frame_end(scene):
     return max_end
 
 
-def _find_vse_window_area_region(context):
-    """Localiza a primeira área SEQUENCE_EDITOR com região WINDOW."""
-    for window in context.window_manager.windows:
-        screen = window.screen
-        if not screen:
-            continue
-        for area in screen.areas:
-            if area.type != 'SEQUENCE_EDITOR':
-                continue
-            for region in area.regions:
-                if region.type == 'WINDOW':
-                    return window, area, region
-    return None
-
-
 def apply_timeline_range(context, max_frame, margin=MARGIN_DEFAULT):
-    """Ajusta o enquadramento horizontal do VSE para max_frame + margem.
-
-    Usa bpy.ops.sequencer.view_all() (caminho nativo e confiável) e, quando
-    possível, amplia o xmax do View2D para incluir a margem visual.
-    """
-    found = _find_vse_window_area_region(context)
-    if not found:
+    """Estende scene.frame_end para max_frame + margem, se ainda não cobrir."""
+    scene = context.scene
+    if scene is None:
         return False
 
-    window, area, region = found
-
-    override = {
-        'window': window,
-        'screen': window.screen,
-        'area': area,
-        'region': region,
-    }
-
-    try:
-        with bpy.context.temp_override(**override):
-            bpy.ops.sequencer.view_all()
-    except Exception:
-        return False
-
-    # Tenta aplicar margem extra no final via View2D (pode não ser gravável
-    # em todas as versões do Blender; se falhar, view_all já enquadrou).
-    try:
-        v2d = region.view2d
-        cur = v2d.cur
-        target_xmax = float(max_frame) + float(margin)
-        if cur.xmax < target_xmax:
-            cur.xmax = target_xmax
-        region.tag_redraw()
-    except Exception:
-        pass
-
-    return True
+    target = int(max_frame) + int(margin)
+    if scene.frame_end < target:
+        scene.frame_end = target
+        return True
+    return False
 
 
 class AutoFitState:
