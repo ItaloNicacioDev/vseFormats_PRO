@@ -42,7 +42,7 @@ def presets_for_category(category):
     return tuple(p for p in PRESETS if p.category == category)
 
 
-def active_preset_id(scene):
+def active_preset_id(scene, fps=None):
     width = round(scene.render.resolution_x * scene.render.resolution_percentage / 100)
     height = round(scene.render.resolution_y * scene.render.resolution_percentage / 100)
     for p in PRESETS:
