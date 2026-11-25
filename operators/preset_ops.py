@@ -9,7 +9,10 @@ class VSEF_OT_ResetProject(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        context.scene.vse_formats.last_preset = ""
+        scene = context.scene
+        scene.vse_formats.last_preset = ""
+        scene.vse_formats.fps_numerator = 30
+        scene.vse_formats.fps_denominator = 1
         return {'FINISHED'}
 
 
