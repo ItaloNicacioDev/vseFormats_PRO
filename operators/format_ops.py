@@ -32,7 +32,7 @@ class VSEF_OT_ApplyFormat(Operator):
         self.report(
             {'INFO'},
             f"{preset.name}: {preset.width} × {preset.height} @ "
-            f"{self.fps_numerator / self.fps_denominator:.3f} FPS",
+            f"{self.fps_numerator / max(self.fps_denominator, 1):.3f} FPS",
         )
         return {'FINISHED'}
 
