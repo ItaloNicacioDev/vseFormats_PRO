@@ -69,7 +69,7 @@ def _auto_fit_timer():
     try:
         scene = bpy.context.scene
         if scene is None:
-            return 0.2
+            return 0.1
 
         max_frame = get_max_frame_end(scene)
         if max_frame > 0 and max_frame != AutoFitState.last_max_frame:
@@ -77,14 +77,14 @@ def _auto_fit_timer():
             apply_timeline_range(bpy.context, max_frame)
     except Exception as exc:
         print(f"[VSE Formats Pro] Auto Fit timer error: {exc}")
-    return 0.2
+    return 0.1
 
 
 def start_auto_fit_timer():
     if AutoFitState.timer_registered:
         return
     try:
-        bpy.app.timers.register(_auto_fit_timer, persistent=True)
+        bpy.app.timers.register(_auto_fit_timer, persistent=True, first_interval=0.0)
         AutoFitState.timer_registered = True
     except Exception:
         pass
