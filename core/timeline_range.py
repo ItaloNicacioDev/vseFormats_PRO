@@ -103,10 +103,14 @@ class AutoFitState:
 def _auto_fit_timer():
     """Callback do timer do Blender. Verifica mudanças no maior frame final."""
     scene = bpy.context.scene
-    if scene is None or scene.sequence_editor is None:
+    if scene is None:
         return 0.5
 
-    if not getattr(scene.vse_formats, "auto_fit_enabled", False):
+    seq = scene.sequence_editor
+    if seq is None:
+        return 0.5
+
+    if not getattr(scene.vse_formats, "auto_fit_enabled", True):
         AutoFitState.last_max_frame = 0
         return 0.5
 
