@@ -4,6 +4,7 @@ Acompanha o maior frame final ocupado pelos strips e estende
 scene.frame_end para comportar esse conteúdo, com margem visual.
 Inspirado no comportamento "auto fit" do Adobe Premiere Pro.
 
+Totalmente automático: sem botões, sem popup, sem intervenção do usuário.
 Não altera duração, FPS, resolução nem posição dos clipes.
 Só aumenta o frame_end; nunca diminui automaticamente (evita cortar o playback).
 """
@@ -16,16 +17,20 @@ MARGIN_DEFAULT = 100
 def get_max_frame_end(scene):
     """Retorna o maior frame final ocupado pelos strips na timeline.
 
-    Considera a posição real dos strips (left/right handle), não a soma de
-    durações. Suporta os nomes de propriedade do Blender 5.1+ (right_handle)
-    com fallback para os nomes anteriores (frame_final_end).
+    Considera a posição real dos strips (right/left handle), não a soma de
+    durações. Suporta nomes do Blender 5.1+ (right_handle) com fallback para
+    nomes anteriores (frame_final_end).
     """
-    seq = scene.sequence_editor
+    seq = getattr(scene, "sequence_editor", None)
     if seq is None:
         return 0
 
     max_end = 0
-    for strip in seq.strips_all:
+    strips = getattr(seq, "strips_all", None)
+    if strips is None:
+        strips = getattr(seq, "sequences", [])
+
+    for strip in strips:
         end = getattr(strip, "right_handle", None)
         if end is None:
             end = getattr(strip, "frame_final_end", 0)
@@ -54,7 +59,7 @@ def apply_timeline_range(context, max_frame, margin=MARGIN_DEFAULT):
 class AutoFitState:
     """Estado do auto fit (mantido fora de bpy.props para não poluir Scene)."""
 
-    enabled = False
+    enabled = True
     last_max_frame = 0
     timer_registered = False
 
@@ -64,16 +69,7 @@ def _auto_fit_timer():
     try:
         scene = bpy.context.scene
         if scene is None:
-            return 0.5
-
-        seq = getattr(scene, "sequence_editor", None)
-        if seq is None:
-            return 0.5
-
-        vse_formats = getattr(scene, "vse_formats", None)
-        if vse_formats is None or not getattr(vse_formats, "auto_fit_enabled", True):
-            AutoFitState.last_max_frame = 0
-            return 0.5
+            return 0.2
 
         max_frame = get_max_frame_end(scene)
         if max_frame > 0 and max_frame != AutoFitState.last_max_frame:
@@ -81,7 +77,7 @@ def _auto_fit_timer():
             apply_timeline_range(bpy.context, max_frame)
     except Exception as exc:
         print(f"[VSE Formats Pro] Auto Fit timer error: {exc}")
-    return 0.5
+    return 0.2
 
 
 def start_auto_fit_timer():
