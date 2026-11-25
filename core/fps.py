@@ -22,9 +22,13 @@ def set_scene_fps(scene, numerator, denominator):
 
 
 def current_fps(scene):
+    if scene.render.fps_base == 0:
+        return 0.0
     return scene.render.fps / scene.render.fps_base
 
 
 def nearest_fps_id(scene):
+    if scene.render.fps_base == 0:
+        return FPS_PRESETS[0][0]
     value = current_fps(scene)
     return min(FPS_PRESETS, key=lambda item: abs(fps_value(item[1], item[2]) - value))[0]
