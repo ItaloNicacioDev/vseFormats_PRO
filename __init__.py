@@ -1,7 +1,7 @@
 bl_info = {
     "name": "VSE Formats Pro",
     "author": "Italo Nicacio",
-    "version": (4, 0, 0),
+    "version": (4, 2, 0),
     "blender": (5, 0, 0),
     "location": "Video Sequencer > Sidebar > VSE Formats",
     "description": "Production format presets for the Blender Video Sequencer with independent FPS control.",
