@@ -17,6 +17,8 @@ def fps_value(numerator, denominator):
 
 
 def set_scene_fps(scene, numerator, denominator):
+    if denominator == 0:
+        denominator = 1
     scene.render.fps = numerator
     scene.render.fps_base = denominator
 
