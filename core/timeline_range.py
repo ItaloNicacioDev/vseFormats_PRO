@@ -61,23 +61,26 @@ class AutoFitState:
 
 def _auto_fit_timer():
     """Callback do timer do Blender. Verifica mudanças no maior frame final."""
-    scene = bpy.context.scene
-    if scene is None:
-        return 0.5
+    try:
+        scene = bpy.context.scene
+        if scene is None:
+            return 0.5
 
-    seq = scene.sequence_editor
-    if seq is None:
-        return 0.5
+        seq = getattr(scene, "sequence_editor", None)
+        if seq is None:
+            return 0.5
 
-    if not getattr(scene.vse_formats, "auto_fit_enabled", True):
-        AutoFitState.last_max_frame = 0
-        return 0.5
+        vse_formats = getattr(scene, "vse_formats", None)
+        if vse_formats is None or not getattr(vse_formats, "auto_fit_enabled", True):
+            AutoFitState.last_max_frame = 0
+            return 0.5
 
-    max_frame = get_max_frame_end(scene)
-    if max_frame > 0 and max_frame != AutoFitState.last_max_frame:
-        AutoFitState.last_max_frame = max_frame
-        apply_timeline_range(bpy.context, max_frame)
-
+        max_frame = get_max_frame_end(scene)
+        if max_frame > 0 and max_frame != AutoFitState.last_max_frame:
+            AutoFitState.last_max_frame = max_frame
+            apply_timeline_range(bpy.context, max_frame)
+    except Exception as exc:
+        print(f"[VSE Formats Pro] Auto Fit timer error: {exc}")
     return 0.5
 
 
