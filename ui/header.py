@@ -8,7 +8,6 @@ def draw_vse_formats_menu(self, context):
     layout.separator()
     op = layout.operator('wm.call_panel', text='VSE Formats', icon='FILE_MOVIE')
     op.name = 'VSEF_PT_main'
-    op = layout.operator('vsef.show_timeline_range_popup', text='Auto Timeline', icon='TIME')
 
 
 def register_header():
