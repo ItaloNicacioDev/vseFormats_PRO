@@ -9,8 +9,9 @@ def apply_preset(scene, preset_id, fps_num=None, fps_den=None):
     render = scene.render
     render.resolution_x = preset.width
     render.resolution_y = preset.height
-    render.resolution_percentage = 100
     if fps_num is not None and fps_den is not None:
         set_scene_fps(scene, fps_num, fps_den)
+        scene.vse_formats.fps_numerator = int(fps_num)
+        scene.vse_formats.fps_denominator = int(fps_den)
     scene.vse_formats.last_preset = preset.id
     return preset
